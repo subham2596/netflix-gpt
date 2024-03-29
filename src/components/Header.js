@@ -1,35 +1,51 @@
 import React from 'react';
 import { PiUserListBold } from "react-icons/pi";
-import { useDispatch, useSelector } from 'react-redux';
-import appStore from '../utils/appStore';
-import { removeUser } from '../utils/userSlice';
 import { auth } from '../utils/firebase';
 import { signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { NETFLIX_LOGO } from '../utils/constants';
+import { useDispatch, useSelector } from 'react-redux';
+import appStore from '../utils/appStore';
+import { enableGPTSearch } from '../utils/gptSlice';
 
 const Header = () => {
     // const user = useSelector((appStore)=>{appStore})
     // console.log(user)
-    const dispatch = useDispatch()
+    const navigate = useNavigate();
+    const user = useSelector((appStore)=>appStore.user);
+    console.log("user useselector ->", user);
+    const dispatch = useDispatch();
 
     const handleSignOut = () => {
         signOut(auth).then(() => {
         // Sign-out successful.
-        dispatch(removeUser());
         }).catch((error) => {
         // An error happened.
         console.log("Sign out error ->", error);
+        navigate("/error");
         });
         
     }
 
-  return (
-    <div className='px-10 py-2 absolute z-10 w-full flex justify-between items-center'>
-        <img className='w-60' src="https://cdn.cookielaw.org/logos/dd6b162f-1a32-456a-9cfe-897231c7763c/4345ea78-053c-46d2-b11e-09adaef973dc/Netflix_Logo_PMS.png" alt="Netflix Logo" />
+    const handleGPTSearch = () => {
+      dispatch(enableGPTSearch());
+    }
 
-        <div className='text-white flex items-center'>
-            <PiUserListBold className='text-3xl' />
-            <button onClick={handleSignOut}>Sign Out</button>
-        </div>
+  return (
+    <div className='header px-4 md:px-10 py-2 absolute z-10 w-full flex justify-between items-center'>
+        <img className='w-32 md:w-60' src={NETFLIX_LOGO} alt="Netflix Logo" />
+        {user && 
+          <div className='flex items-center gap-3'>
+            <button disabled className='hidden md:block bg-gray-700 text-white rounded px-4 py-2 opacity-70 cursor-not-allowed' onClick={handleGPTSearch}>GPT Search</button>
+            
+            <div className='text-white flex items-center gap-2'>
+                {/* <PiUserListBold className='text-3xl' /> */}
+                
+                <div><img className='hidden md:block w-7 rounded-sm' src={user.photoURL} alt="User Icon" /></div>
+                <button onClick={handleSignOut} className='font-bold'>Sign Out</button>
+            </div>
+          </div>
+        }
     </div>
   )
 }
